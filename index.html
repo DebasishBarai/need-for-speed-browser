@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Need for Speed - Browser Racing</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      #ui-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      #speedometer {
+        position: absolute;
+        bottom: 40px;
+        right: 40px;
+        text-align: center;
+        color: #fff;
+      }
+      #speed-value {
+        font-size: 64px;
+        font-weight: bold;
+        text-shadow: 0 0 20px rgba(0, 200, 255, 0.8);
+        line-height: 1;
+      }
+      #speed-unit {
+        font-size: 18px;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+      }
+      #nitro-bar-container {
+        position: absolute;
+        bottom: 40px;
+        right: 200px;
+        width: 20px;
+        height: 120px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      #nitro-bar {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to top, #00aaff, #00ffcc);
+        transition: height 0.1s;
+        border-radius: 8px;
+      }
+      #nitro-label {
+        position: absolute;
+        bottom: 165px;
+        right: 200px;
+        color: #00ccff;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      #lap-info {
+        position: absolute;
+        top: 30px;
+        right: 40px;
+        text-align: right;
+        color: #fff;
+      }
+      #lap-counter {
+        font-size: 28px;
+        font-weight: bold;
+      }
+      #lap-time {
+        font-size: 22px;
+        color: #0cf;
+        margin-top: 5px;
+        font-variant-numeric: tabular-nums;
+      }
+      #best-time {
+        font-size: 16px;
+        color: #aaa;
+        margin-top: 3px;
+        font-variant-numeric: tabular-nums;
+      }
+      #position-display {
+        position: absolute;
+        top: 30px;
+        left: 40px;
+        color: #fff;
+      }
+      #race-position {
+        font-size: 48px;
+        font-weight: bold;
+        text-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+      }
+      #position-suffix {
+        font-size: 24px;
+        vertical-align: super;
+      }
+      #total-racers {
+        font-size: 18px;
+        color: #aaa;
+      }
+      #countdown {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 120px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+        display: none;
+      }
+      #controls-hint {
+        position: absolute;
+        bottom: 40px;
+        left: 40px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      #controls-hint kbd {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        font-family: inherit;
+        min-width: 24px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="renderCanvas"></canvas>
+    <div id="ui-overlay">
+      <div id="speedometer">
+        <div id="speed-value">0</div>
+        <div id="speed-unit">km/h</div>
+      </div>
+      <div id="nitro-label">NITRO</div>
+      <div id="nitro-bar-container">
+        <div id="nitro-bar"></div>
+      </div>
+      <div id="lap-info">
+        <div id="lap-counter">LAP 1/3</div>
+        <div id="lap-time">00:00.000</div>
+        <div id="best-time">BEST --:--.---</div>
+      </div>
+      <div id="position-display">
+        <span id="race-position">1<span id="position-suffix">st</span></span>
+        <div id="total-racers">/ 4</div>
+      </div>
+      <div id="countdown"></div>
+      <div id="controls-hint">
+        <kbd>W</kbd> Accelerate<br>
+        <kbd>S</kbd> Brake<br>
+        <kbd>A</kbd> <kbd>D</kbd> Steer<br>
+        <kbd>Shift</kbd> Nitro<br>
+        <kbd>Space</kbd> Handbrake
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
