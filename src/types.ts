@@ -26,3 +26,5 @@ export interface TrackConfig {
   totalLaps: number;
   aiWaypoints: { x: number; z: number }[];
 }
+
+export type CarStyle = 'ferrari' | 'lamborghini' | 'mclaren' | 'porsche';

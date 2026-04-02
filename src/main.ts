@@ -6,104 +6,111 @@ import { createAICars, updateAICar, getPositions } from './ai';
 import { updateUI, showCountdown, hideCountdown, showFinishMessage } from './ui';
 import { TRACK_CONFIG } from './track';
 
-// Initialize engine
-const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-const engine = new Engine(canvas, true, { stencil: true });
+function startGame(): void {
+  // Transition: hide landing, show game
+  const landing = document.getElementById('landing-page')!;
+  const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+  const uiOverlay = document.getElementById('ui-overlay')!;
 
-// Create scene
-const scene = createScene(engine, canvas);
-const camera = createCamera(scene, canvas);
-const shadowGen = createLights(scene);
-createEnvironment(scene, shadowGen);
+  landing.classList.add('hidden');
+  canvas.style.display = 'block';
+  uiOverlay.style.display = 'block';
 
-// Create player car (red, at start line)
-const playerCar = createCar(scene, new Color3(0.9, 0.1, 0.1), -3, 80, 0);
-shadowGen.addShadowCaster(playerCar.mesh);
+  // Remove landing page from DOM after transition
+  setTimeout(() => landing.remove(), 700);
 
-// Create AI cars
-const aiCars = createAICars(scene);
-aiCars.forEach(ai => shadowGen.addShadowCaster(ai.state.mesh));
+  // Initialize engine
+  const engine = new Engine(canvas, true, { stencil: true });
 
-// Setup input
-const input = setupInput();
+  // Create scene
+  const scene = createScene(engine, canvas);
+  const camera = createCamera(scene, canvas);
+  const shadowGen = createLights(scene);
+  createEnvironment(scene, shadowGen);
 
-// Game state
-let raceStarted = false;
-let countdownTimer = 0;
-let countdownPhase = 0;
-let raceFinished = false;
+  // Create player car (red, at start line)
+  const playerCar = createCar(scene, new Color3(0.9, 0.1, 0.1), -3, 80, 0);
+  shadowGen.addShadowCaster(playerCar.mesh);
 
-// Countdown sequence
-const COUNTDOWN_DURATION = 4000; // 3-2-1-GO
+  // Create AI cars
+  const aiCars = createAICars(scene);
+  aiCars.forEach(ai => shadowGen.addShadowCaster(ai.state.mesh));
 
-function startCountdown(): void {
-  countdownTimer = 0;
-  countdownPhase = 0;
+  // Setup input
+  const input = setupInput();
+
+  // Game state
+  let raceStarted = false;
+  let countdownTimer = 0;
+  let raceFinished = false;
+
+  // Start countdown
   showCountdown('3');
-}
 
-startCountdown();
+  // Main game loop
+  scene.onBeforeRenderObservable.add(() => {
+    const deltaTime = engine.getDeltaTime();
 
-// Main game loop
-scene.onBeforeRenderObservable.add(() => {
-  const deltaTime = engine.getDeltaTime();
+    if (!raceStarted) {
+      // Countdown phase
+      countdownTimer += deltaTime;
 
-  if (!raceStarted) {
-    // Countdown phase
-    countdownTimer += deltaTime;
+      if (countdownTimer < 1000) {
+        showCountdown('3');
+      } else if (countdownTimer < 2000) {
+        showCountdown('2');
+      } else if (countdownTimer < 3000) {
+        showCountdown('1');
+      } else if (countdownTimer < 3500) {
+        showCountdown('GO!');
+      } else {
+        hideCountdown();
+        raceStarted = true;
+      }
 
-    if (countdownTimer < 1000) {
-      showCountdown('3');
-    } else if (countdownTimer < 2000) {
-      showCountdown('2');
-    } else if (countdownTimer < 3000) {
-      showCountdown('1');
-    } else if (countdownTimer < 3500) {
-      showCountdown('GO!');
-    } else {
-      hideCountdown();
-      raceStarted = true;
+      // Update camera even during countdown
+      updateCamera(camera, playerCar.mesh, 0);
+      return;
     }
 
-    // Update camera even during countdown
-    updateCamera(camera, playerCar.mesh, 0);
-    return;
-  }
+    if (raceFinished) {
+      updateCamera(camera, playerCar.mesh, playerCar.speed);
+      return;
+    }
 
-  if (raceFinished) {
+    // Update player car
+    updateCar(playerCar, input, deltaTime);
+    const playerFinished = checkCheckpoints(playerCar, TRACK_CONFIG.checkpoints, TRACK_CONFIG.totalLaps);
+
+    // Update AI cars
+    for (const ai of aiCars) {
+      updateAICar(ai, deltaTime);
+    }
+
+    // Camera follow
     updateCamera(camera, playerCar.mesh, playerCar.speed);
-    return;
-  }
 
-  // Update player car
-  updateCar(playerCar, input, deltaTime);
-  const playerFinished = checkCheckpoints(playerCar, TRACK_CONFIG.checkpoints, TRACK_CONFIG.totalLaps);
+    // Update UI
+    const { position, total } = getPositions(playerCar, aiCars);
+    updateUI(playerCar, position, total, TRACK_CONFIG.totalLaps);
 
-  // Update AI cars
-  for (const ai of aiCars) {
-    updateAICar(ai, deltaTime);
-  }
+    // Check for race finish
+    if (playerFinished) {
+      raceFinished = true;
+      showFinishMessage(position);
+    }
+  });
 
-  // Camera follow
-  updateCamera(camera, playerCar.mesh, playerCar.speed);
+  // Render loop
+  engine.runRenderLoop(() => {
+    scene.render();
+  });
 
-  // Update UI
-  const { position, total } = getPositions(playerCar, aiCars);
-  updateUI(playerCar, position, total, TRACK_CONFIG.totalLaps);
+  // Handle resize
+  window.addEventListener('resize', () => {
+    engine.resize();
+  });
+}
 
-  // Check for race finish
-  if (playerFinished) {
-    raceFinished = true;
-    showFinishMessage(position);
-  }
-});
-
-// Render loop
-engine.runRenderLoop(() => {
-  scene.render();
-});
-
-// Handle resize
-window.addEventListener('resize', () => {
-  engine.resize();
-});
+// Wire up start button
+document.getElementById('start-btn')!.addEventListener('click', startGame);

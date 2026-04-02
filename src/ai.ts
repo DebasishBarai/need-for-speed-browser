@@ -7,7 +7,7 @@ import { TRACK_CONFIG } from './track';
 export interface AICar {
   state: CarState;
   currentWaypoint: number;
-  skillLevel: number; // 0-1, affects speed and precision
+  skillLevel: number;
   input: InputState;
 }
 
@@ -18,16 +18,16 @@ const AI_COLORS = [
 ];
 
 export function createAICars(scene: Scene): AICar[] {
-  const waypoints = TRACK_CONFIG.aiWaypoints;
   const startZ = 80;
 
   return AI_COLORS.map((color, i) => {
-    const offsetX = (i + 1) * 3.5;
-    const state = createCar(scene, color, offsetX, startZ - 8 - i * 5, 0);
+    // Stagger AI cars behind the player on the track
+    const offsetX = (i - 1) * 3;
+    const state = createCar(scene, color, offsetX, startZ - 6 - i * 4, 0);
     return {
       state,
       currentWaypoint: 1,
-      skillLevel: 0.6 + i * 0.12, // Varying difficulty
+      skillLevel: 0.6 + i * 0.12,
       input: {
         forward: false,
         backward: false,
@@ -51,7 +51,6 @@ export function updateAICar(ai: AICar, deltaTime: number): void {
   const distToWaypoint = Math.sqrt(dx * dx + dz * dz);
   const targetAngle = Math.atan2(dx, dz);
 
-  // Normalize angle difference
   let angleDiff = targetAngle - ai.state.rotation;
   while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
   while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
@@ -65,11 +64,10 @@ export function updateAICar(ai: AICar, deltaTime: number): void {
   ai.input.handbrake = false;
 
   // Steering
-  const steerThreshold = 0.05;
-  if (angleDiff < -steerThreshold) ai.input.left = true;
-  if (angleDiff > steerThreshold) ai.input.right = true;
+  if (angleDiff < -0.05) ai.input.left = true;
+  if (angleDiff > 0.05) ai.input.right = true;
 
-  // Throttle control based on skill
+  // Throttle
   const absAngleDiff = Math.abs(angleDiff);
   if (absAngleDiff < Math.PI / 3) {
     ai.input.forward = true;
@@ -90,43 +88,32 @@ export function updateAICar(ai: AICar, deltaTime: number): void {
   }
 
   // Advance waypoint
-  if (distToWaypoint < 15) {
+  if (distToWaypoint < 12) {
     ai.currentWaypoint = (ai.currentWaypoint + 1) % waypoints.length;
   }
 
-  // Update car physics
   updateCar(ai.state, ai.input, deltaTime * ai.skillLevel);
-
-  // Check checkpoints
   checkCheckpoints(ai.state, TRACK_CONFIG.checkpoints, TRACK_CONFIG.totalLaps);
 }
 
 export function getPositions(playerCar: CarState, aiCars: AICar[]): { position: number; total: number } {
   const total = aiCars.length + 1;
 
-  // Score = laps completed * 1000 + checkpoints passed * 100 + distance to next checkpoint (inverted)
   function score(car: CarState): number {
     const lapScore = (car.lap - 1) * 10000;
     const cpScore = car.lastCheckpoint * 1000;
-
-    // Distance to next checkpoint (closer = higher score)
     const nextCp = (car.lastCheckpoint + 1) % TRACK_CONFIG.checkpoints.length;
     const cp = TRACK_CONFIG.checkpoints[nextCp];
     const dx = car.mesh.position.x - cp.x;
     const dz = car.mesh.position.z - cp.z;
     const dist = Math.sqrt(dx * dx + dz * dz);
-    const distScore = 500 - dist;
-
-    return lapScore + cpScore + distScore;
+    return lapScore + cpScore + (500 - dist);
   }
 
   const playerScore = score(playerCar);
   let position = 1;
-
   for (const ai of aiCars) {
-    if (score(ai.state) > playerScore) {
-      position++;
-    }
+    if (score(ai.state) > playerScore) position++;
   }
 
   return { position, total };

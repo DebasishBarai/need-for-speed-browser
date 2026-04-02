@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Need for Speed - Browser Racing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
       * {
         margin: 0;
@@ -15,12 +18,272 @@
         height: 100%;
         overflow: hidden;
         background: #000;
+        font-family: 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
+
+      /* ===== LANDING PAGE ===== */
+      #landing-page {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: radial-gradient(ellipse at 50% 120%, #0a1628 0%, #000 70%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      #landing-page.hidden {
+        opacity: 0;
+        transform: scale(1.05);
+        pointer-events: none;
+      }
+
+      /* Animated road lines background */
+      .road-lines {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0.15;
+      }
+      .road-line {
+        position: absolute;
+        width: 4px;
+        background: linear-gradient(to bottom, transparent, #00ccff, transparent);
+        animation: roadLineMove linear infinite;
+      }
+      @keyframes roadLineMove {
+        0% { transform: translateY(-100vh); }
+        100% { transform: translateY(100vh); }
+      }
+
+      /* Speed lines */
+      .speed-lines {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0.06;
+      }
+      .speed-line {
+        position: absolute;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #fff, transparent);
+        animation: speedLineMove linear infinite;
+      }
+      @keyframes speedLineMove {
+        0% { transform: translateX(100vw); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateX(-100vw); opacity: 0; }
+      }
+
+      /* Glowing orb in background */
+      .bg-glow {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.3;
+        animation: pulseGlow 4s ease-in-out infinite alternate;
+      }
+      .bg-glow.blue {
+        background: #0055ff;
+        top: -200px;
+        left: -100px;
+      }
+      .bg-glow.red {
+        background: #ff0033;
+        bottom: -200px;
+        right: -100px;
+        animation-delay: 2s;
+      }
+      @keyframes pulseGlow {
+        0% { opacity: 0.15; transform: scale(1); }
+        100% { opacity: 0.35; transform: scale(1.1); }
+      }
+
+      /* Title */
+      .landing-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        padding: 0 24px;
+      }
+      .title-sub {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 16px;
+        font-weight: 300;
+        letter-spacing: 12px;
+        text-transform: uppercase;
+        color: #00ccff;
+        margin-bottom: 8px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 0.2s;
+      }
+      .title-main {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(48px, 8vw, 96px);
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(135deg, #fff 0%, #00ccff 50%, #ff3366 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(0 0 40px rgba(0, 150, 255, 0.3));
+        margin-bottom: 4px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 0.4s;
+      }
+      .title-tagline {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 20px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 4px;
+        margin-bottom: 48px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 0.6s;
+      }
+
+      @keyframes fadeSlideUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Car silhouette */
+      .car-display {
+        position: relative;
+        width: 320px;
+        height: 80px;
+        margin: 0 auto 48px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 0.5s;
+      }
+      .car-svg {
+        width: 100%;
+        height: 100%;
+      }
+      .car-glow {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 20px;
+        background: radial-gradient(ellipse, rgba(255, 50, 50, 0.6) 0%, transparent 70%);
+        filter: blur(8px);
+        animation: tailGlow 2s ease-in-out infinite alternate;
+      }
+      @keyframes tailGlow {
+        0% { opacity: 0.5; width: 200px; }
+        100% { opacity: 1; width: 260px; }
+      }
+
+      /* Start button */
+      .start-btn {
+        position: relative;
+        display: inline-block;
+        padding: 18px 64px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: #fff;
+        background: linear-gradient(135deg, rgba(255, 50, 50, 0.2), rgba(0, 100, 255, 0.2));
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 0.8s;
+      }
+      .start-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #ff3344, #0066ff);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .start-btn:hover {
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(0, 100, 255, 0.3), 0 0 80px rgba(255, 50, 50, 0.2);
+      }
+      .start-btn:hover::before {
+        opacity: 0.3;
+      }
+      .start-btn:active {
+        transform: scale(0.98);
+      }
+      .start-btn span {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Controls grid */
+      .controls-grid {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-top: 48px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 1s;
+      }
+      .control-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 14px;
+        font-weight: 400;
+      }
+      .control-item .key {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        font-family: 'Orbitron', monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0;
+      }
+
+      /* Footer */
+      .landing-footer {
+        position: absolute;
+        bottom: 24px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.15);
+        font-size: 12px;
+        letter-spacing: 2px;
+        opacity: 0;
+        animation: fadeSlideUp 0.8s ease forwards 1.2s;
+      }
+
+      /* ===== GAME CANVAS ===== */
       #renderCanvas {
         width: 100%;
         height: 100%;
         touch-action: none;
+        display: none;
       }
+
+      /* ===== HUD OVERLAY ===== */
       #ui-overlay {
         position: absolute;
         top: 0;
@@ -28,7 +291,8 @@
         width: 100%;
         height: 100%;
         pointer-events: none;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: none;
       }
       #speedometer {
         position: absolute;
@@ -38,12 +302,14 @@
         color: #fff;
       }
       #speed-value {
+        font-family: 'Orbitron', sans-serif;
         font-size: 64px;
         font-weight: bold;
         text-shadow: 0 0 20px rgba(0, 200, 255, 0.8);
         line-height: 1;
       }
       #speed-unit {
+        font-family: 'Rajdhani', sans-serif;
         font-size: 18px;
         color: #aaa;
         text-transform: uppercase;
@@ -77,6 +343,7 @@
         font-size: 12px;
         letter-spacing: 2px;
         text-transform: uppercase;
+        font-family: 'Orbitron', sans-serif;
       }
       #lap-info {
         position: absolute;
@@ -86,16 +353,19 @@
         color: #fff;
       }
       #lap-counter {
-        font-size: 28px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 24px;
         font-weight: bold;
       }
       #lap-time {
-        font-size: 22px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
         color: #0cf;
         margin-top: 5px;
         font-variant-numeric: tabular-nums;
       }
       #best-time {
+        font-family: 'Rajdhani', sans-serif;
         font-size: 16px;
         color: #aaa;
         margin-top: 3px;
@@ -108,6 +378,7 @@
         color: #fff;
       }
       #race-position {
+        font-family: 'Orbitron', sans-serif;
         font-size: 48px;
         font-weight: bold;
         text-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
@@ -117,6 +388,7 @@
         vertical-align: super;
       }
       #total-racers {
+        font-family: 'Rajdhani', sans-serif;
         font-size: 18px;
         color: #aaa;
       }
@@ -125,6 +397,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        font-family: 'Orbitron', sans-serif;
         font-size: 120px;
         font-weight: bold;
         color: #fff;
@@ -145,13 +418,70 @@
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 4px;
         background: rgba(255, 255, 255, 0.1);
-        font-family: inherit;
+        font-family: 'Orbitron', monospace;
+        font-size: 11px;
         min-width: 24px;
         text-align: center;
       }
     </style>
   </head>
   <body>
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="landing-page">
+      <div class="bg-glow blue"></div>
+      <div class="bg-glow red"></div>
+
+      <div class="road-lines" id="road-lines"></div>
+      <div class="speed-lines" id="speed-lines"></div>
+
+      <div class="landing-content">
+        <div class="title-sub">Browser</div>
+        <div class="title-main">NEED FOR SPEED</div>
+        <div class="title-tagline">3D Racing in Your Browser</div>
+
+        <div class="car-display">
+          <svg class="car-svg" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Car body -->
+            <path d="M60 55 L80 30 L140 20 L220 20 L260 35 L280 45 L280 58 L60 58 Z" fill="url(#carGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <!-- Windows -->
+            <path d="M85 33 L110 22 L160 22 L170 33 Z" fill="rgba(100,200,255,0.3)" stroke="rgba(100,200,255,0.4)" stroke-width="0.5"/>
+            <path d="M175 33 L165 22 L215 22 L230 33 Z" fill="rgba(100,200,255,0.2)" stroke="rgba(100,200,255,0.3)" stroke-width="0.5"/>
+            <!-- Wheels -->
+            <circle cx="100" cy="60" r="14" fill="#111" stroke="#333" stroke-width="2"/>
+            <circle cx="100" cy="60" r="8" fill="#222" stroke="#444" stroke-width="1"/>
+            <circle cx="240" cy="60" r="14" fill="#111" stroke="#333" stroke-width="2"/>
+            <circle cx="240" cy="60" r="8" fill="#222" stroke="#444" stroke-width="1"/>
+            <!-- Headlight -->
+            <rect x="275" y="40" width="8" height="6" rx="1" fill="#ffe066" opacity="0.9"/>
+            <!-- Taillight -->
+            <rect x="58" y="48" width="6" height="8" rx="1" fill="#ff3344" opacity="0.9"/>
+            <defs>
+              <linearGradient id="carGrad" x1="60" y1="20" x2="280" y2="58">
+                <stop offset="0%" stop-color="#cc1133"/>
+                <stop offset="100%" stop-color="#ff3355"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="car-glow"></div>
+        </div>
+
+        <button class="start-btn" id="start-btn">
+          <span>START RACE</span>
+        </button>
+
+        <div class="controls-grid">
+          <div class="control-item"><span class="key">W</span> Accelerate</div>
+          <div class="control-item"><span class="key">A</span><span class="key">D</span> Steer</div>
+          <div class="control-item"><span class="key">S</span> Brake</div>
+          <div class="control-item"><span class="key">SHIFT</span> Nitro</div>
+          <div class="control-item"><span class="key">SPACE</span> Drift</div>
+        </div>
+      </div>
+
+      <div class="landing-footer">BABYLON.JS &bull; TYPESCRIPT &bull; VITE</div>
+    </div>
+
+    <!-- ===== GAME ===== -->
     <canvas id="renderCanvas"></canvas>
     <div id="ui-overlay">
       <div id="speedometer">
@@ -180,6 +510,35 @@
         <kbd>Space</kbd> Handbrake
       </div>
     </div>
+
+    <!-- Landing page animations -->
+    <script>
+      // Generate animated road lines
+      (function() {
+        const container = document.getElementById('road-lines');
+        for (let i = 0; i < 12; i++) {
+          const line = document.createElement('div');
+          line.className = 'road-line';
+          line.style.left = (15 + Math.random() * 70) + '%';
+          line.style.height = (60 + Math.random() * 120) + 'px';
+          line.style.animationDuration = (2 + Math.random() * 3) + 's';
+          line.style.animationDelay = (Math.random() * 3) + 's';
+          container.appendChild(line);
+        }
+
+        const speedContainer = document.getElementById('speed-lines');
+        for (let i = 0; i < 8; i++) {
+          const line = document.createElement('div');
+          line.className = 'speed-line';
+          line.style.top = (10 + Math.random() * 80) + '%';
+          line.style.width = (100 + Math.random() * 200) + 'px';
+          line.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+          line.style.animationDelay = (Math.random() * 3) + 's';
+          speedContainer.appendChild(line);
+        }
+      })();
+    </script>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
